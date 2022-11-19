@@ -23,8 +23,11 @@ pub fn simulation(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut wave: ResMut<Wave>,
-    mut mobs: Query<(Entity, &Transform, &Mob), With<Mob>>
+    mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    time: Res<Time>
 ) {
+    let dt = time.delta_seconds();
+
     if mobs.is_empty() {
         println!("Spawning Wave: {}", wave.current);
         let mobs = get_wave(wave.current);
@@ -38,13 +41,19 @@ pub fn simulation(
             }).insert(Mob {
                 vel: Vec3::default(),
                 acc: Vec3::default(),
-                health: 0.0,
+                health: 10.0,
                 strength: 0.0
             });
         }
     } else {
-        for (entity, &transform, mob) in mobs.iter_mut() {
+        for (entity, mut transform, mut mob) in mobs.iter_mut() {
+            mob.update(dt);
 
+            transform.translation += mob.vel * dt;
+
+            if mob.health <= 0.0 {
+                commands.entity(entity).despawn();
+            }
         }
     }
 }
