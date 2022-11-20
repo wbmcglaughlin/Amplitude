@@ -1,18 +1,18 @@
-use std::char::MAX;
 use bevy::{
     prelude::*,
 };
 use rand::{Rng, thread_rng};
 use crate::mob::Mob;
-use crate::system_adapter::new;
 
 pub const MAX_ATTRACTION_DISTANCE: f32 = 10.0;
+pub const PLAYER_SIZE: f32 = 1.0;
 
 pub struct SimulationPlugin;
+
 impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Wave {
-            current: 4
+            current: 0
         })
             .add_system(simulation);
     }
@@ -35,7 +35,6 @@ pub fn simulation(
     let mut prng = thread_rng();
 
     if mobs.is_empty() {
-        wave.current += 1;
         println!("Spawning Wave: {}", wave.current);
         let mobs = get_wave(wave.current);
 
@@ -52,6 +51,8 @@ pub fn simulation(
                 strength: 1.0
             });
         }
+
+        wave.current += 1;
     } else {
         let mut forces: Vec<Vec3> = Vec::new();
         let mut damages: Vec<f32> = Vec::new();
@@ -94,7 +95,7 @@ pub fn simulation(
             let new_position = transform.translation + new_distance;
 
             for position in &positions {
-                if new_position.distance_squared(position.clone()) < 0.5 * 0.5 {
+                if new_position.distance_squared(position.clone()) < PLAYER_SIZE.powf(2.0) / 4.0 {
 
                 }
             }
@@ -112,6 +113,14 @@ pub fn simulation(
 pub fn get_wave(
     wave: usize
 ) -> usize {
-    return wave;
+    let mut spawns = 0;
+
+    match wave {
+        0 => {spawns = 2},
+        1 => {spawns = 3},
+        _ => {spawns = wave.pow(2)}
+    }
+
+    return spawns;
 }
 

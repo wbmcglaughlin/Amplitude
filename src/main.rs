@@ -1,10 +1,12 @@
 mod surface;
 mod mob;
 mod simulation;
+mod player;
 
 use bevy::{
     prelude::*,
 };
+use crate::player::PlayerPlugin;
 use crate::simulation::SimulationPlugin;
 use crate::surface::generate_world;
 
@@ -15,6 +17,7 @@ fn main() {
         .add_startup_system(setup)
         .add_startup_system(generate_world)
         .add_plugin(SimulationPlugin)
+        .add_plugin(PlayerPlugin)
         .run();
 }
 

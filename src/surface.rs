@@ -37,7 +37,7 @@ pub fn generate_world(
             far: 2048.0,
             ..Default::default()
         }),
-        transform: Transform::from_xyz(CAMERA_DISTANCE, CAMERA_DISTANCE, CAMERA_DISTANCE).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(-CAMERA_DISTANCE, CAMERA_DISTANCE, -CAMERA_DISTANCE).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     });
 }
