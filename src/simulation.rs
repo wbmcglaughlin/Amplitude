@@ -1,9 +1,12 @@
+use std::char::MAX;
 use bevy::{
     prelude::*,
 };
 use rand::{Rng, thread_rng};
 use crate::mob::Mob;
 use crate::system_adapter::new;
+
+pub const MAX_ATTRACTION_DISTANCE: f32 = 10.0;
 
 pub struct SimulationPlugin;
 impl Plugin for SimulationPlugin {
@@ -46,7 +49,7 @@ pub fn simulation(
                 vel: Vec3::default(),
                 acc: Vec3::default(),
                 health: 10.0,
-                strength: prng.gen::<f32>()
+                strength: 1.0
             });
         }
     } else {
@@ -61,12 +64,15 @@ pub fn simulation(
             for (entity2, transform2, mob2) in mobs.iter() {
                 if entity2 != entity1 {
                     let distance = transform2.translation - transform1.translation;
+                    let distance_squared = distance.length_squared();
 
-                    // Attraction Force
-                    force += distance;
+                    if distance_squared < MAX_ATTRACTION_DISTANCE * MAX_ATTRACTION_DISTANCE {
+                        // Attraction Force
+                        force += distance;
+                    }
 
                     // Repel Force
-                    let mut repel = 0.1 / distance;
+                    let mut repel = 1.0 / distance;
                     repel.y = 0.;
 
                     force -= repel;
@@ -94,6 +100,7 @@ pub fn simulation(
             }
 
             transform.translation += new_distance;
+            transform.scale.y = mob.strength;
 
             if mob.health <= 0.0 {
                 commands.entity(entity).despawn();
