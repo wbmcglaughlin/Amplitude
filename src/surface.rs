@@ -9,6 +9,9 @@ pub const CAMERA_DISTANCE: f32 = GROUND_SIZE * 0.8;
 
 pub const GROUND_PLANES: i32 = 3;
 
+#[derive(Component)]
+pub struct GameCamera {}
+
 pub fn generate_world(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -37,7 +40,11 @@ pub fn generate_world(
             far: 2048.0,
             ..Default::default()
         }),
-        transform: Transform::from_xyz(-CAMERA_DISTANCE, CAMERA_DISTANCE, -CAMERA_DISTANCE).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(
+            CAMERA_DISTANCE / 1.5,
+            2.0 * CAMERA_DISTANCE,
+            CAMERA_DISTANCE / 1.5
+        ).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
-    });
+    }).insert(GameCamera {});
 }

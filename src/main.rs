@@ -6,6 +6,7 @@ mod player;
 use bevy::{
     prelude::*,
 };
+
 use crate::player::PlayerPlugin;
 use crate::simulation::SimulationPlugin;
 use crate::surface::generate_world;

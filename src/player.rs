@@ -2,6 +2,7 @@ use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
+use crate::surface::GameCamera;
 
 pub const GRAVITY: f32 = -1.;
 pub const SPEED: f32 = 0.3;
@@ -13,7 +14,8 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(spawn_player)
-            .add_system(player_control);
+            .add_system(player_control)
+            .add_system(handle_mouse_clicks);
     }
 }
 
@@ -43,6 +45,8 @@ impl Player {
             side);
 
         self.vel += self.acc * dt;
+
+        self.vel -= cd * self.vel * self.vel.length();
     }
 }
 
@@ -102,6 +106,22 @@ pub fn player_control(
 
         if transform.translation.y < 0.5 {
             transform.translation.y = 0.5;
+        }
+    }
+}
+
+fn handle_mouse_clicks(
+    camera: Query<(&Projection, &Transform, &GameCamera), With<GameCamera>>,
+    mouse_input: Res<Input<MouseButton>>,
+    windows: Res<Windows>
+) {
+    let win = windows.get_primary().expect("no primary window");
+
+    if mouse_input.just_pressed(MouseButton::Left) {
+        let cursor_position = win.cursor_position();
+
+        for (projection, transform, game_camera) in camera.iter() {
+            println!("{}", transform.forward())
         }
     }
 }
