@@ -9,6 +9,7 @@ dependencies = [
  "bevy",
  "bevy-debug-text-overlay",
  "bevy-inspector-egui",
+ "bevy_mod_raycast",
  "noise",
  "rand 0.8.5",
 ]
@@ -634,6 +635,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e67d9caff1be480eb097e1a5ee7332762e19a2ea3d07496017fc8221ea6bc46"
 dependencies = [
  "glam",
+]
+
+[[package]]
+name = "bevy_mod_raycast"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a5813c0224e31350919e5fbf5a2099c3be4c7b8c04e8584ee4dba4e87795a19"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]
