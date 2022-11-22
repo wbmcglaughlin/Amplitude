@@ -22,32 +22,29 @@ impl Plugin for PlayerPlugin {
 
 #[derive(Component, Default)]
 pub struct Player {
+    pos: Vec3,
     vel: Vec3,
     acc: Vec3,
     health: f32,
-
+    pub target_position: Vec3,
     pub last_jump: Stopwatch
 }
 
 impl Player {
     pub fn update(
         &mut self,
-        forward: f32,
-        up: f32,
-        side: f32,
         dt: f32
     ) {
         // Get current direction and slow down
         let cd = 0.04;
 
-        self.acc = Vec3::new(
-            forward,
-            up + GRAVITY,
-            side);
+        self.acc = (self.target_position - self.pos).normalize_or_zero();
 
         self.vel += self.acc * dt;
+        self.vel -= cd * self.vel * self.vel.length() * dt;
 
-        self.vel -= cd * self.vel * self.vel.length();
+        self.pos += self.vel * dt;
+        self.pos.y = 0.5;
     }
 }
 
@@ -59,71 +56,43 @@ pub fn spawn_player(
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
         material: materials.add(Color::rgb(0.2, 0.3, 0.2).into()),
-        transform: Transform::from_xyz(0.0, 0.5,0.0),
+        transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..default()
     }).insert(Player {
+        pos: Vec3::new(0.0, 0.5, 0.0),
         vel: Vec3::default(),
         acc: Vec3::default(),
         health: 100.0,
+        target_position: Vec3::new(0.0, 0.5, 0.0),
         ..default()
     });
 }
 
 pub fn player_control(
     time: Res<Time>,
-    keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<(Entity, &mut Transform, &mut Player), With<Player>>
 ) {
     for (entity, mut transform, mut player) in player_query.iter_mut() {
-        let mut forward = 0f32;
-        let mut side = 0f32;
-        let mut up = 0f32;
-
-        if keyboard_input.pressed(KeyCode::W) {
-            forward += SPEED;
-        }
-        if keyboard_input.pressed(KeyCode::A) {
-            side += SPEED * SIDE_SPEED_FACTOR;
-        }
-        if keyboard_input.pressed(KeyCode::S) {
-            forward -= SPEED * SIDE_SPEED_FACTOR;
-        }
-        if keyboard_input.pressed(KeyCode::D) {
-            side -= SPEED * SIDE_SPEED_FACTOR;
-        }
-
-        // Jump handler
-        if keyboard_input.pressed(KeyCode::Space) {
-            if player.last_jump.elapsed_secs() > JUMP_TIMER {
-                player.last_jump.reset();
-                up += JUMP_ACCEL;
-            }
-        }
-
-        player.last_jump.tick(time.delta());
-
-        player.update(forward, up, side, time.delta_seconds());
-        transform.translation += player.vel;
-
-        if transform.translation.y < 0.5 {
-            transform.translation.y = 0.5;
-        }
+        player.update(time.delta_seconds());
+        transform.translation = player.pos;
+        println!("{}", transform.translation);
     }
 }
 
 fn handle_mouse_clicks(
-    camera: Query<(&Projection, &Transform, &GameCamera), With<GameCamera>>,
+    mut player_query: Query<(Entity, &mut Transform, &mut Player), With<Player>>,
     mouse_input: Res<Input<MouseButton>>,
-    windows: Res<Windows>,
     to: Query<&RaycastSource<Surface>>,
 ) {
-    let win = windows.get_primary().expect("no primary window");
-
-    if mouse_input.just_pressed(MouseButton::Left) {
-        let cursor_position = win.cursor_position();
-
-        for (projection, transform, game_camera) in camera.iter() {
-
+    if let Ok(raycast_source) = to.get_single() {
+        if let Some(top_intersection) = raycast_source.get_nearest_intersection() {
+            let mut new_position = top_intersection.1.position();
+            new_position.y = 0.5;
+            if mouse_input.just_pressed(MouseButton::Left) {
+                for (entity, mut transform, mut player) in player_query.iter_mut() {
+                    player.target_position = new_position;
+                }
+            }
         }
     }
 }
