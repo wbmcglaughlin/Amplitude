@@ -1,9 +1,10 @@
+use std::time::Duration;
 use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
 use bevy_mod_raycast::RaycastSource;
-use crate::surface::{GameCamera, Surface};
+use crate::surface::Surface;
 
 pub const GRAVITY: f32 = -1.;
 pub const SPEED: f32 = 0.3;
@@ -48,6 +49,19 @@ impl Player {
     }
 }
 
+#[derive(Component)]
+pub struct Projectile {
+    pos: Vec3,
+    vel: Vec3,
+    acc: Vec3,
+    pub target_position: Vec3,
+}
+
+#[derive(Component)]
+pub struct ProjectileTimer {
+    timer: Timer,
+}
+
 pub fn spawn_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -65,17 +79,23 @@ pub fn spawn_player(
         health: 100.0,
         target_position: Vec3::new(0.0, 0.5, 0.0),
         ..default()
+    }).insert(ProjectileTimer {
+        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating)
     });
 }
 
 pub fn player_control(
     time: Res<Time>,
-    mut player_query: Query<(Entity, &mut Transform, &mut Player), With<Player>>
+    mut player_query: Query<(Entity, &mut Transform, &mut Player, &mut ProjectileTimer), With<Player>>
 ) {
-    for (entity, mut transform, mut player) in player_query.iter_mut() {
+    for (entity, mut transform, mut player, mut timer) in player_query.iter_mut() {
+        timer.timer.tick(time.delta());
+        if timer.timer.finished() {
+            println!("Finished Timer");
+        }
+
         player.update(time.delta_seconds());
         transform.translation = player.pos;
-        println!("{}", transform.translation);
     }
 }
 
