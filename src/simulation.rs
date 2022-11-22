@@ -1,10 +1,13 @@
+use std::collections::HashSet;
 use bevy::{
     prelude::*,
 };
+use bevy::reflect::List;
 use rand::{Rng, thread_rng};
 use crate::mob::Mob;
+use crate::player::Projectile;
 
-pub const MAX_ATTRACTION_DISTANCE: f32 = 10.0;
+pub const MAX_ATTRACTION_DISTANCE: f32 = 100.0;
 pub const PLAYER_SIZE: f32 = 1.0;
 
 pub struct SimulationPlugin;
@@ -29,10 +32,33 @@ pub fn simulation(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut wave: ResMut<Wave>,
     mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    mut proj: Query<(Entity, &mut Transform, &mut Projectile), (With<Projectile>, Without<Mob>)>,
     time: Res<Time>
 ) {
     let dt = time.delta_seconds();
     let mut prng = thread_rng();
+
+    let mut despawns = HashSet::new();
+
+    for (entity, mut transform, mut projectile) in proj.iter_mut() {
+        let mut proj_accel = Vec3::default();
+        for (entity1, transform1, mut mob1) in mobs.iter_mut() {
+            let distance = transform1.translation - transform.translation;
+            if distance.length_squared() < 0.5 {
+                despawns.insert(entity);
+                mob1.health -= 10.0;
+            }
+            proj_accel += (distance)
+        }
+        projectile.acc = proj_accel.normalize_or_zero();
+        projectile.update(dt);
+
+        transform.translation = projectile.pos;
+    }
+
+    for entity in despawns {
+        commands.entity(entity).despawn();
+    }
 
     if mobs.is_empty() {
         println!("Spawning Wave: {}", wave.current);
