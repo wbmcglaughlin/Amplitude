@@ -56,11 +56,9 @@ pub fn update_raycast_with_cursor(
 /// set up a simple 3D scene
 fn setup(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.insert_resource(DefaultPluginState::<Surface>::default().with_debug_cursor());
+    // .with_debug_cursor() - add this if needed.
+    commands.insert_resource(DefaultPluginState::<Surface>::default());
 
     // Insert lighting to frame
     const HALF_SIZE: f32 = 40.0;

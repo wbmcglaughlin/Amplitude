@@ -3,12 +3,11 @@ use bevy::{
     prelude::*,
 };
 use bevy_mod_raycast::{
-    DefaultPluginState, DefaultRaycastingPlugin, RaycastMesh, RaycastMethod, RaycastSource,
-    RaycastSystem,
+    RaycastMesh, RaycastMethod, RaycastSource,
 };
 
 pub const GROUND_COLOR: f32 = 0.1;
-pub const GROUND_SIZE: f32 = 32.0;
+pub const GROUND_SIZE: f32 = 16.0;
 pub const CAMERA_DISTANCE: f32 = GROUND_SIZE * 0.8;
 
 pub const GROUND_PLANES: i32 = 3;
@@ -39,7 +38,6 @@ fn update_raycast_with_cursor(
 
 pub fn generate_world(
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
@@ -48,31 +46,40 @@ pub fn generate_world(
             // Ground
             commands.spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Plane { size: GROUND_SIZE })),
-                material: materials.add(Color::rgb(GROUND_COLOR, GROUND_COLOR, GROUND_COLOR).into()),
+                material: materials.add(
+                    Color::rgb(
+                        GROUND_COLOR + (plane_x.abs() as f32 * 0.1),
+                        GROUND_COLOR,
+                        GROUND_COLOR
+                    ).into()),
                 transform: Transform {
-                    translation: Vec3::new(plane_x as f32 * GROUND_SIZE , 0f32, plane_y as f32 * GROUND_SIZE),
+                    translation: Vec3::new(
+                        plane_x as f32 * GROUND_SIZE ,
+                        0f32,
+                        plane_y as f32 * GROUND_SIZE),
                     scale: Vec3::new(1.0, 1.0, 1.0),
                     ..default()
                 },
                 ..default()
-            }).insert(RaycastMesh::<Surface>::default());
-// Make this mesh ray cast-able
+            }).insert(RaycastMesh::<Surface>::default()); // Make this mesh ray cast-able
         }
     }
 
     commands.spawn(Camera3dBundle {
-        projection: bevy::render::camera::Projection::Perspective(PerspectiveProjection {
+        projection: Projection::Perspective(PerspectiveProjection {
             fov: PI / 3.,
             far: 2048.0,
             ..Default::default()
         }),
         transform: Transform::from_xyz(
             CAMERA_DISTANCE / 1.5,
-            2.0 * CAMERA_DISTANCE,
+            3.0 * CAMERA_DISTANCE,
             CAMERA_DISTANCE / 1.5
-        ).looking_at(Vec3::ZERO, Vec3::Y),
+        )
+            .looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
-    }).insert(GameCamera {})
-        .insert(RaycastSource::<Surface>::new()); // Designate the camera as our source
+        })
+            .insert(GameCamera {})
+            .insert(RaycastSource::<Surface>::new()); // Designate the camera as our source
 
 }

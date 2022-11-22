@@ -17,7 +17,8 @@ impl Plugin for SimulationPlugin {
         app.insert_resource(Wave {
             current: 0
         })
-            .add_system(simulation);
+            .add_system(simulation)
+            .add_system(projectile_update);
     }
 }
 
@@ -32,51 +33,13 @@ pub fn simulation(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut wave: ResMut<Wave>,
     mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
-    mut proj: Query<(Entity, &mut Transform, &mut Projectile), (With<Projectile>, Without<Mob>)>,
     time: Res<Time>
 ) {
+    // Time step for current frame
     let dt = time.delta_seconds();
-    let mut prng = thread_rng();
-
-    let mut despawns = HashSet::new();
-
-    for (entity, mut transform, mut projectile) in proj.iter_mut() {
-        let mut proj_accel = Vec3::default();
-        for (entity1, transform1, mut mob1) in mobs.iter_mut() {
-            let distance = transform1.translation - transform.translation;
-            if distance.length_squared() < 0.5 {
-                despawns.insert(entity);
-                mob1.health -= 10.0;
-            }
-            proj_accel += (distance)
-        }
-        projectile.acc = proj_accel.normalize_or_zero();
-        projectile.update(dt);
-
-        transform.translation = projectile.pos;
-    }
-
-    for entity in despawns {
-        commands.entity(entity).despawn();
-    }
 
     if mobs.is_empty() {
-        println!("Spawning Wave: {}", wave.current);
-        let mobs = get_wave(wave.current);
-
-        for mob_index in 0..mobs {
-            commands.spawn(PbrBundle {
-                mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-                material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
-                transform: Transform::from_xyz(prng.gen::<f32>() * 20.0, 0.5,prng.gen::<f32>() * 20.0),
-                ..default()
-            }).insert(Mob {
-                vel: Vec3::default(),
-                acc: Vec3::default(),
-                health: 10.0,
-                strength: 1.0
-            });
-        }
+        spawn_wave(&mut commands, &mut meshes, &mut materials, wave.current);
 
         wave.current += 1;
     } else {
@@ -99,7 +62,7 @@ pub fn simulation(
                     }
 
                     // Repel Force
-                    let mut repel = 1.0 / distance;
+                    let mut repel = 3.0 / distance;
                     repel.y = 0.;
 
                     force -= repel;
@@ -133,6 +96,65 @@ pub fn simulation(
                 commands.entity(entity).despawn();
             }
         }
+    }
+}
+
+fn projectile_update(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    mut proj: Query<(Entity, &mut Transform, &mut Projectile), (With<Projectile>, Without<Mob>)>,
+) {
+    let dt = time.delta_seconds();
+
+    // Handle the projectile interaction with the mobs. If projectiles need to be despawned after the force analysis
+    // they can be added to the hashset.
+    let mut despawns = HashSet::new();
+
+    for (entity, mut transform, mut projectile) in proj.iter_mut() {
+        let mut proj_accel = Vec3::default();
+        for (entity1, transform1, mut mob1) in mobs.iter_mut() {
+            let distance = transform1.translation - transform.translation;
+            if distance.length_squared() < 0.5 {
+                despawns.insert(entity);
+                mob1.health -= projectile.damage;
+            }
+            proj_accel += (distance)
+        }
+        projectile.acc = proj_accel.normalize_or_zero();
+        projectile.update(dt);
+
+        transform.translation = projectile.pos;
+    }
+
+    for entity in despawns {
+        commands.entity(entity).despawn();
+    }
+}
+
+fn spawn_wave (
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<StandardMaterial>>,
+    wave_number: usize
+) {
+    // Random number generation for the simulation
+    let mut prng = thread_rng();
+
+    let mobs = get_wave(wave_number);
+
+    for _ in 0..mobs {
+        commands.spawn(PbrBundle {
+            mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+            transform: Transform::from_xyz(prng.gen::<f32>() * 20.0, 0.5,prng.gen::<f32>() * 20.0),
+            ..default()
+        }).insert(Mob {
+            vel: Vec3::default(),
+            acc: Vec3::default(),
+            health: 10.0,
+            strength: 1.0
+        });
     }
 }
 

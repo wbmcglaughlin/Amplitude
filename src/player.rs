@@ -40,7 +40,7 @@ impl Player {
         // Get current direction and slow down
         let cd = 0.04;
 
-        self.acc = (self.target_position - self.pos).normalize_or_zero();
+        self.acc = (self.target_position - self.pos);
 
         self.vel += self.acc * dt;
         self.vel -= cd * self.vel * self.vel.length() * dt;
@@ -55,6 +55,7 @@ pub struct Projectile {
     pub pos: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
+    pub damage: f32
 }
 
 impl Projectile {
@@ -147,6 +148,7 @@ fn projectile_spawner(
                 pos: transform.translation,
                 vel: Vec3::default(),
                 acc: Vec3::default(),
+                damage: 3.0
             });
         }
     }
