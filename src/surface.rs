@@ -19,12 +19,12 @@ pub struct GameCamera {}
 /// This is a unit struct we will use to mark our generic `RaycastMesh`s and `RaycastSource` as part
 /// of the same group, or "RaycastSet". For more complex use cases, you might use this to associate
 /// some meshes with one ray casting source, and other meshes with a different ray casting source."
-pub struct MyRaycastSet;
+pub struct Surface;
 
 // Update our `RaycastSource` with the current cursor position every frame.
 fn update_raycast_with_cursor(
     mut cursor: EventReader<CursorMoved>,
-    mut query: Query<&mut RaycastSource<MyRaycastSet>>,
+    mut query: Query<&mut RaycastSource<Surface>>,
 ) {
     // Grab the most recent cursor event if it exists:
     let cursor_position = match cursor.iter().last() {
@@ -55,7 +55,8 @@ pub fn generate_world(
                     ..default()
                 },
                 ..default()
-            }).insert(RaycastMesh::<MyRaycastSet>::default()); // Make this mesh ray cast-able
+            }).insert(RaycastMesh::<Surface>::default());
+// Make this mesh ray cast-able
         }
     }
 
@@ -72,6 +73,6 @@ pub fn generate_world(
         ).looking_at(Vec3::ZERO, Vec3::Y),
         ..Default::default()
     }).insert(GameCamera {})
-        .insert(RaycastSource::<MyRaycastSet>::new()); // Designate the camera as our source
+        .insert(RaycastSource::<Surface>::new()); // Designate the camera as our source
 
 }

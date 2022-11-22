@@ -3,7 +3,7 @@ use bevy::{
 };
 use bevy::time::Stopwatch;
 use bevy_mod_raycast::RaycastSource;
-use crate::surface::GameCamera;
+use crate::surface::{GameCamera, Surface};
 
 pub const GRAVITY: f32 = -1.;
 pub const SPEED: f32 = 0.3;
@@ -115,7 +115,7 @@ fn handle_mouse_clicks(
     camera: Query<(&Projection, &Transform, &GameCamera), With<GameCamera>>,
     mouse_input: Res<Input<MouseButton>>,
     windows: Res<Windows>,
-    to: Query<&RaycastSource<Ground>>,
+    to: Query<&RaycastSource<Surface>>,
 ) {
     let win = windows.get_primary().expect("no primary window");
 
