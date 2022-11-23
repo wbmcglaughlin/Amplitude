@@ -25,8 +25,7 @@ fn main() {
         // intersection. For more advanced uses, you can compose the systems in this plugin however
         // you need. For example, you might exclude the debug cursor system.
         .add_plugin(DefaultRaycastingPlugin::<Surface>::default())
-        // You will need to pay attention to what order you add systems! Putting them in the wrong
-        // order can result in multiple frames of latency. Ray casting should probably happen near
+        // Ray casting should probably happen near
         // start of the frame. For example, we want to be sure this system runs before we construct
         // any rays, hence the ".before(...)". You can use these provided RaycastSystem labels to
         // order your systems with the ones provided by the raycasting plugin.
