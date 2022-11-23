@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 use bevy::{
     prelude::*,
 };
+use bevy::render::camera::ScalingMode;
 use bevy_mod_raycast::{
     RaycastMesh, RaycastMethod, RaycastSource,
 };
@@ -66,14 +67,14 @@ pub fn generate_world(
     }
 
     commands.spawn(Camera3dBundle {
-        projection: Projection::Perspective(PerspectiveProjection {
-            fov: PI / 3.,
-            far: 2048.0,
-            ..Default::default()
-        }),
+        projection: OrthographicProjection {
+            scale: 3.0,
+            scaling_mode: ScalingMode::FixedVertical(CAMERA_DISTANCE),
+            ..default()
+        }.into(),
         transform: Transform::from_xyz(
             CAMERA_DISTANCE / 1.5,
-            3.0 * CAMERA_DISTANCE,
+            1.0 * CAMERA_DISTANCE,
             CAMERA_DISTANCE / 1.5
         )
             .looking_at(Vec3::ZERO, Vec3::Y),
@@ -81,5 +82,4 @@ pub fn generate_world(
         })
             .insert(GameCamera {})
             .insert(RaycastSource::<Surface>::new()); // Designate the camera as our source
-
 }

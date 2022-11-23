@@ -1,10 +1,11 @@
+use std::mem::take;
 use std::time::Duration;
 use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
 use bevy_mod_raycast::RaycastSource;
-use crate::surface::Surface;
+use crate::surface::{CAMERA_DISTANCE, GameCamera, Surface};
 
 pub const GRAVITY: f32 = -1.;
 pub const SPEED: f32 = 0.3;
@@ -103,11 +104,21 @@ pub fn spawn_player(
 
 pub fn player_control(
     time: Res<Time>,
+    mut camera: Query<(&mut Transform), (With<GameCamera>, Without<Player>)>,
     mut player_query: Query<(Entity, &mut Transform, &mut Player, &mut ProjectileTimer), With<Player>>
 ) {
     for (entity, mut transform, mut player, mut timer) in player_query.iter_mut() {
         player.update(time.delta_seconds());
         transform.translation = player.pos;
+
+        for (mut camera_transform) in camera.iter_mut() {
+            *camera_transform = Transform::from_translation(
+                    Vec3::new(CAMERA_DISTANCE / 1.5,
+                             1.0 * CAMERA_DISTANCE,
+                             CAMERA_DISTANCE / 1.5) + transform.translation
+                )
+                .looking_at(transform.translation, Vec3::Y)
+        }
     }
 }
 
