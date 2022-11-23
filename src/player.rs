@@ -13,6 +13,8 @@ pub const SIDE_SPEED_FACTOR: f32 = 1.;
 pub const JUMP_ACCEL: f32 = -GRAVITY * 40.;
 pub const JUMP_TIMER: f32 = 0.2;
 
+pub const PLAYER_COLOUR: Color = Color::rgb(0.9, 0.9, 0.9);
+
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -87,7 +89,7 @@ pub fn spawn_player(
 ) {
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-        material: materials.add(Color::rgb(0.2, 0.3, 0.2).into()),
+        material: materials.add(PLAYER_COLOUR.into()),
         transform: Transform::from_xyz(0.0, 0.5, 0.0),
         ..default()
     }).insert(Player {
@@ -152,12 +154,12 @@ fn projectile_spawner(
         if timer.timer.finished() {
             commands.spawn(PbrBundle {
                 mesh: meshes.add(Mesh::from(shape::Cube { size: 0.3 })),
-                material: materials.add(Color::rgb(0.2, 0.3, 0.2).into()),
-                transform: Transform::from_xyz(0.0, 0.15, 0.0),
+                material: materials.add(PLAYER_COLOUR.into()),
+                transform: Transform::from_translation(transform.translation),
                 ..default()
             }).insert(Projectile {
                 pos: transform.translation,
-                vel: Vec3::default(),
+                vel: player.vel,
                 acc: Vec3::default(),
                 damage: 3.0
             });

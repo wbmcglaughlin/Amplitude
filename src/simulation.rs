@@ -4,7 +4,7 @@ use bevy::{
 };
 use bevy::reflect::List;
 use rand::{Rng, thread_rng};
-use crate::mob::Mob;
+use crate::mob::{get_mob_type, Mob};
 use crate::player::Projectile;
 
 pub const MAX_ATTRACTION_DISTANCE: f32 = 100.0;
@@ -144,16 +144,17 @@ fn spawn_wave (
     let mobs = get_wave(wave_number);
 
     for _ in 0..mobs {
+        let strength = 1.0;
         commands.spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+            material: materials.add(get_mob_type(strength).into()),
             transform: Transform::from_xyz(prng.gen::<f32>() * 20.0, 0.5,prng.gen::<f32>() * 20.0),
             ..default()
         }).insert(Mob {
             vel: Vec3::default(),
             acc: Vec3::default(),
             health: 10.0,
-            strength: 1.0
+            strength: strength
         });
     }
 }

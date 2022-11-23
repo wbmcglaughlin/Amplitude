@@ -19,3 +19,17 @@ impl Mob {
         self.vel -= DRAG_CONSTANT * self.vel * self.vel.length();
     }
 }
+
+pub fn get_mob_type(
+    strength: f32
+) -> Color {
+    let strength_type = strength as i32;
+
+    if strength_type < 1 {
+        return Color::rgb(1.0, 1.0, 1.0);
+    } else if strength_type < 2 {
+        return Color::rgb(1.0, 0.9, 0.9);
+    }
+
+    return Color::rgb(1.0, 0.6, 0.6);
+}
