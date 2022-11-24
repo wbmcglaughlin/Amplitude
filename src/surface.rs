@@ -67,6 +67,10 @@ pub fn generate_world(
     }
 
     commands.spawn(Camera3dBundle {
+        camera: Camera {
+          priority: 1,
+            ..default()
+        },
         projection: OrthographicProjection {
             scale: 3.0,
             scaling_mode: ScalingMode::FixedVertical(CAMERA_DISTANCE),

@@ -30,7 +30,7 @@ pub struct Player {
     pos: Vec3,
     vel: Vec3,
     acc: Vec3,
-    health: f32,
+    pub health: f32,
     pub target_position: Vec3,
     pub last_jump: Stopwatch
 }

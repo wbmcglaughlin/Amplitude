@@ -19,6 +19,7 @@ impl Plugin for SimulationPlugin {
         })
             .add_system(get_inter_mob_forces)
             .add_system(get_player_mob_forces)
+            .add_system(player_mob_interaction)
             .add_system(simulation)
             .add_system(projectile_update);
     }
@@ -56,6 +57,21 @@ pub fn simulation(
 
         if mob.health <= 0.0 {
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn player_mob_interaction(
+    mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>
+) {
+    for (_, transform, mut mob) in mobs.iter_mut() {
+        for (_, p_transform, mut player) in players.iter_mut() {
+            let distance = (p_transform.translation - transform.translation).length_squared();
+
+            if distance < 2.0_f32.powf(2.0) {
+                player.health -= mob.strength;
+            }
         }
     }
 }
@@ -99,11 +115,11 @@ fn get_player_mob_forces(
     mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
     mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>
 ) {
-    for (entity, transform, mut mob) in mobs.iter_mut() {
+    for (_, transform, mut mob) in mobs.iter_mut() {
         let mut max_distance_squared: f32 = f32::MAX;
         let mut force = Vec3::default();
 
-        for (p_entity, p_transform, mut player) in players.iter_mut() {
+        for (_, p_transform, mut player) in players.iter_mut() {
             let distance = (p_transform.translation - transform.translation).length_squared();
 
             if distance < max_distance_squared {

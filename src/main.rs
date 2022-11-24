@@ -2,6 +2,7 @@ mod surface;
 mod mob;
 mod simulation;
 mod player;
+mod ui;
 
 use bevy::{
     prelude::*,
@@ -11,6 +12,7 @@ use bevy_mod_raycast::{DefaultPluginState, DefaultRaycastingPlugin, RaycastMetho
 use crate::player::PlayerPlugin;
 use crate::simulation::SimulationPlugin;
 use crate::surface::{generate_world, Surface};
+use crate::ui::UIPlugin;
 
 fn main() {
     App::new()
@@ -20,6 +22,7 @@ fn main() {
         .add_startup_system(generate_world)
         .add_plugin(SimulationPlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(UIPlugin)
         // The DefaultRaycastingPlugin bundles all the functionality you might need into a single
         // plugin. This includes building rays, casting them, and placing a debug cursor at the
         // intersection. For more advanced uses, you can compose the systems in this plugin however
