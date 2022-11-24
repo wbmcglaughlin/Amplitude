@@ -63,14 +63,15 @@ pub fn simulation(
 
 fn player_mob_interaction(
     mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
-    mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>
+    mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>,
+    time: Res<Time>
 ) {
     for (_, transform, mut mob) in mobs.iter_mut() {
         for (_, p_transform, mut player) in players.iter_mut() {
             let distance = (p_transform.translation - transform.translation).length_squared();
 
             if distance < 2.0_f32.powf(2.0) {
-                player.health -= mob.strength;
+                player.health -= mob.strength * time.delta_seconds();
             }
         }
     }
