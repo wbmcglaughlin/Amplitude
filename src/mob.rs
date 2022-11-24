@@ -24,6 +24,8 @@ impl Mob {
         self.vel -= DRAG_CONSTANT * self.vel * self.vel.length();
 
         self.pos += self.vel * dt;
+
+        self.force = Vec3::default();
     }
 }
 

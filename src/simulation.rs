@@ -1,12 +1,13 @@
 use std::collections::HashSet;
+
 use bevy::{
     prelude::*,
 };
 use rand::{Rng, thread_rng};
 use crate::mob::{get_mob_type, Mob};
-use crate::player::Projectile;
+use crate::player::{Player, Projectile};
 
-pub const MAX_ATTRACTION_DISTANCE: f32 = 100.0;
+pub const MAX_ATTRACTION_DISTANCE: f32 = 10.0;
 pub const PLAYER_SIZE: f32 = 1.0;
 
 pub struct SimulationPlugin;
@@ -17,6 +18,7 @@ impl Plugin for SimulationPlugin {
             current: 0
         })
             .add_system(get_inter_mob_forces)
+            .add_system(get_player_mob_forces)
             .add_system(simulation)
             .add_system(projectile_update);
     }
@@ -89,7 +91,28 @@ fn get_inter_mob_forces(
     }
 
     for (i, (_, _, mut mob)) in mobs.iter_mut().enumerate() {
-        mob.force = forces[i];
+        mob.force += forces[i];
+    }
+}
+
+fn get_player_mob_forces(
+    mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>
+) {
+    for (entity, transform, mut mob) in mobs.iter_mut() {
+        let mut max_distance_squared: f32 = f32::MAX;
+        let mut force = Vec3::default();
+
+        for (p_entity, p_transform, mut player) in players.iter_mut() {
+            let distance = (p_transform.translation - transform.translation).length_squared();
+
+            if distance < max_distance_squared {
+                max_distance_squared = distance;
+                force = p_transform.translation - transform.translation;
+            }
+        }
+
+        mob.force += force;
     }
 }
 
