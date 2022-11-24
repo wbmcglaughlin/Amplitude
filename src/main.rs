@@ -7,6 +7,8 @@ mod ui;
 use bevy::{
     prelude::*,
 };
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::window::PresentMode;
 use bevy_mod_raycast::{DefaultPluginState, DefaultRaycastingPlugin, RaycastMethod, RaycastSource, RaycastSystem};
 
 use crate::player::PlayerPlugin;
@@ -17,7 +19,16 @@ use crate::ui::UIPlugin;
 fn main() {
     App::new()
         .insert_resource(Msaa { samples: 1 })
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Amplitude".to_string(),
+                present_mode: PresentMode::AutoNoVsync,
+                ..default()
+            },
+            ..default()
+        }))
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_startup_system(setup)
         .add_startup_system(generate_world)
         .add_plugin(SimulationPlugin)

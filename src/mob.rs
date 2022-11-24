@@ -1,8 +1,13 @@
+use std::time::Duration;
 use bevy::{
     prelude::*,
 };
+use bevy::time::Stopwatch;
 
 pub const DRAG_CONSTANT: f32 = 0.03;
+
+pub const ATTACKED_COLOR: Color = Color::rgb(0.9, 0.4, 0.4);
+pub const ATTACKED_FLASH_TIME: f32 = 0.5;
 
 #[derive(Component)]
 pub struct Mob {
@@ -12,7 +17,10 @@ pub struct Mob {
     pub(crate) force: Vec3,
     pub(crate) health: f32,
     pub(crate) strength: f32,
-    pub(crate) mass: f32
+    pub(crate) mass: f32,
+
+    pub color: Color,
+    pub last_damaged: Stopwatch
 }
 
 impl Mob {
@@ -26,6 +34,17 @@ impl Mob {
         self.pos += self.vel * dt;
 
         self.force = Vec3::default();
+
+        self.last_damaged.tick(Duration::from_secs_f32(dt));
+    }
+
+    pub fn damage(
+        &mut self,
+        damage: f32,
+    ) {
+        self.health -= damage;
+
+        self.last_damaged.reset();
     }
 }
 

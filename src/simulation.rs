@@ -3,8 +3,9 @@ use std::collections::HashSet;
 use bevy::{
     prelude::*,
 };
+use bevy::time::Stopwatch;
 use rand::{Rng, thread_rng};
-use crate::mob::{get_mob_type, Mob};
+use crate::mob::{ATTACKED_COLOR, ATTACKED_FLASH_TIME, get_mob_type, Mob};
 use crate::player::{Player, Projectile};
 
 pub const MAX_ATTRACTION_DISTANCE: f32 = 10.0;
@@ -35,7 +36,7 @@ pub fn simulation(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut wave: ResMut<Wave>,
-    mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
+    mut mobs: Query<(Entity, &mut Transform, &mut Mob, &Handle<StandardMaterial>), With<Mob>>,
     time: Res<Time>
 ) {
     // Check if there are any mobs active in the scene, if not begin to spawn next wave.
@@ -49,7 +50,7 @@ pub fn simulation(
 
     let dt: f32 = time.delta_seconds();
 
-    for (entity, mut transform, mut mob) in mobs.iter_mut(){
+    for (entity, mut transform, mut mob, material_handle) in mobs.iter_mut(){
         mob.update(dt);
 
         transform.translation = mob.pos;
@@ -57,6 +58,12 @@ pub fn simulation(
 
         if mob.health <= 0.0 {
             commands.entity(entity).despawn();
+        }
+
+        if mob.last_damaged.elapsed_secs() < ATTACKED_FLASH_TIME {
+            let material = materials.get_mut(material_handle).unwrap();
+
+            material.base_color = color_lerp(ATTACKED_COLOR, mob.color, (mob.last_damaged.elapsed_secs()/ATTACKED_FLASH_TIME).min(1.));
         }
     }
 }
@@ -141,8 +148,8 @@ fn projectile_update(
 ) {
     let dt = time.delta_seconds();
 
-    // Handle the projectile interaction with the mobs. If projectiles need to be de-spawned after the force analysis
-    // they can be added to the hashset.
+    // Handle the projectile interaction with the mobs.
+    // If projectiles need to be de-spawned after the force analysis they can be added to the hashset.
     let mut despawns = HashSet::new();
 
     for (entity, mut transform, mut projectile) in proj.iter_mut() {
@@ -151,7 +158,7 @@ fn projectile_update(
             let distance = transform1.translation - transform.translation;
             if distance.length_squared() < 0.5 {
                 despawns.insert(entity);
-                mob1.health -= projectile.damage;
+                mob1.damage(projectile.damage);
             }
             proj_accel += (distance)
         }
@@ -182,10 +189,11 @@ fn spawn_wave (
         let position = Vec3::new(prng.gen::<f32>() * 20.0,
                                  0.5,
                                  prng.gen::<f32>() * 20.0);
+        let color = get_mob_type(strength);
 
         commands.spawn(PbrBundle {
             mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-            material: materials.add(get_mob_type(strength).into()),
+            material: materials.add(color.into()),
             transform: Transform::from_translation(position),
             ..default()
         }).insert(Mob {
@@ -195,7 +203,9 @@ fn spawn_wave (
             force: Vec3::default(),
             health: 10.0,
             strength,
-            mass: 1.0
+            mass: 1.0,
+            color: color,
+            last_damaged: Stopwatch::default()
         });
     }
 }
@@ -212,5 +222,16 @@ pub fn get_wave(
     }
 
     return spawns;
+}
+
+pub fn color_lerp(
+    c1: Color,
+    c2: Color,
+    v: f32
+) -> Color {
+    return Color::rgb(
+        c1.r() + (c2.r() - c1.r()) * v, c1.g() + (c2.g() - c1.g()) * v,
+        c1.b() + (c2.b() - c1.b()) * v,
+    )
 }
 
