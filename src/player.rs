@@ -14,6 +14,8 @@ pub const JUMP_ACCEL: f32 = -GRAVITY * 40.;
 pub const JUMP_TIMER: f32 = 0.2;
 
 pub const PLAYER_COLOUR: Color = Color::rgb(0.9, 0.9, 0.9);
+pub const TARGET_COLOUR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
+
 
 pub const PROJECTILE_LIFETIME: f32 = 10.0;
 
@@ -43,11 +45,17 @@ impl Player {
         dt: f32
     ) {
         // Get current direction and slow down
-        let cd = 0.04;
+        let mut cd = 0.04;
 
-        self.acc = (self.target_position - self.pos);
+        let difference = (self.target_position - self.pos);
+        let length = difference.length_squared();
+
+        self.acc = difference;
 
         self.vel += self.acc * dt;
+
+        cd = (1.0 - cd) / (1.0 + length) + cd;
+
         self.vel -= cd * self.vel * self.vel.length() * dt;
 
         self.pos += self.vel * dt;
@@ -85,6 +93,9 @@ pub struct ProjectileTimer {
     timer: Timer,
 }
 
+#[derive(Component)]
+pub struct Target;
+
 pub fn spawn_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -104,6 +115,14 @@ pub fn spawn_player(
         ..default()
     }).insert(ProjectileTimer {
         timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating)
+    });
+
+    commands.spawn(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 0.3 })),
+        material: materials.add(TARGET_COLOUR.into()),
+        transform: Transform::from_xyz(0.0, 0.5, 0.0),
+        ..default()
+    }).insert(Target {
     });
 }
 
@@ -129,6 +148,7 @@ pub fn player_control(
 
 fn handle_mouse_clicks(
     mut player_query: Query<(Entity, &mut Transform, &mut Player), With<Player>>,
+    mut target: Query<&mut Transform, (With<Target>, Without<Player>)>,
     mouse_input: Res<Input<MouseButton>>,
     to: Query<&RaycastSource<Surface>>,
 ) {
@@ -139,6 +159,9 @@ fn handle_mouse_clicks(
             if mouse_input.just_pressed(MouseButton::Left) {
                 for (entity, mut transform, mut player) in player_query.iter_mut() {
                     player.target_position = new_position;
+                    for mut transform in target.iter_mut() {
+                        transform.translation = new_position;
+                    }
                 }
             }
         }
