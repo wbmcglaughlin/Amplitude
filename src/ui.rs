@@ -3,6 +3,7 @@ use bevy::{
 };
 use crate::mob::Mob;
 use crate::player::Player;
+use crate::simulation::Wave;
 
 pub struct UIPlugin;
 impl Plugin for UIPlugin {
@@ -12,9 +13,9 @@ impl Plugin for UIPlugin {
     }
 }
 
-// A unit struct to help identify the color-changing Text component
+// A unit struct to help identify the UI Text Component
 #[derive(Component)]
-struct ColorText;
+struct UIText;
 
 fn spawn_ui(
     mut commands: Commands,
@@ -31,39 +32,45 @@ fn spawn_ui(
     // Text with one section
     commands.spawn((
         // Create a TextBundle that has a Text with a single section.
-        TextBundle::from_section(
+        TextBundle::from_sections([
+            TextSection::new(
             // Accepts a `String` or any type that converts into a `String`, such as `&str`
             "100",
             TextStyle {
                 font: asset_server.load("fonts/framdit.ttf"),
                 font_size: 30.0,
                 color: Color::WHITE,
-            },
-        ) // Set the alignment of the Text
-            .with_text_alignment(TextAlignment::TOP_CENTER)
-            // Set the style of the TextBundle itself.
-            .with_style(Style {
-                position_type: PositionType::Absolute,
-                position: UiRect {
-                    bottom: Val::Px(5.0),
-                    right: Val::Px(15.0),
-                    ..default()
                 },
-                ..default()
-            }),
-        ColorText,
+            ),
+            TextSection::new(
+                // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                "\n0",
+                TextStyle {
+                    font: asset_server.load("fonts/framdit.ttf"),
+                    font_size: 30.0,
+                    color: Color::WHITE,
+                },
+            )
+        ]),
+        UIText,
     ));
 }
 
 fn update_ui(
     mut players: Query<(&mut Player), (Without<Mob>, With<Player>)>,
-    mut text: Query<(&mut Text), With<ColorText>>
+    mut text: Query<(&mut Text), With<UIText>>,
+    wave: Res<Wave>
 ) {
     for (mut text) in &mut text {
         for (mut player) in players.iter_mut() {
             text.sections[0].value = format!(
                 "{:.1} health",
                 player.health
+            );
+
+            text.sections[1].value = format!(
+                "\nwave {:.1}",
+                wave.current
             );
         }
     }

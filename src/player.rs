@@ -15,6 +15,8 @@ pub const JUMP_TIMER: f32 = 0.2;
 
 pub const PLAYER_COLOUR: Color = Color::rgb(0.9, 0.9, 0.9);
 
+pub const PROJECTILE_LIFETIME: f32 = 10.0;
+
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
@@ -58,7 +60,8 @@ pub struct Projectile {
     pub pos: Vec3,
     pub vel: Vec3,
     pub acc: Vec3,
-    pub damage: f32
+    pub damage: f32,
+    pub lifetime: Timer
 }
 
 impl Projectile {
@@ -161,7 +164,8 @@ fn projectile_spawner(
                 pos: transform.translation,
                 vel: player.vel,
                 acc: Vec3::default(),
-                damage: 3.0
+                damage: 3.0,
+                lifetime: Timer::new(Duration::from_secs_f32(PROJECTILE_LIFETIME), TimerMode::Once),
             });
         }
     }

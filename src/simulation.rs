@@ -153,6 +153,12 @@ fn projectile_update(
     let mut despawns = HashSet::new();
 
     for (entity, mut transform, mut projectile) in proj.iter_mut() {
+        projectile.lifetime.tick(time.delta());
+        if projectile.lifetime.finished() {
+            despawns.insert(entity);
+        }
+
+
         let mut proj_accel = Vec3::default();
         for (_, transform1, mut mob1) in mobs.iter_mut() {
             let distance = transform1.translation - transform.translation;
