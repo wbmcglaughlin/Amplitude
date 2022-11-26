@@ -185,7 +185,7 @@ fn projectile_spawner(
                 ..default()
             }).insert(Projectile {
                 pos: transform.translation,
-                vel: player.vel,
+                vel: Vec3::default(),
                 acc: Vec3::default(),
                 damage: 3.0,
                 lifetime: Timer::new(Duration::from_secs_f32(PROJECTILE_LIFETIME), TimerMode::Once),

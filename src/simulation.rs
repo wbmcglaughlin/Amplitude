@@ -4,7 +4,9 @@ use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
+use iyes_loopless::prelude::ConditionSet;
 use rand::{Rng, thread_rng};
+use crate::GameState;
 use crate::mob::{ATTACKED_COLOR, ATTACKED_FLASH_TIME, get_mob_type, Mob};
 use crate::player::{Player, Projectile};
 
@@ -17,12 +19,16 @@ impl Plugin for SimulationPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Wave {
             current: 0
-        })
-            .add_system(get_inter_mob_forces)
-            .add_system(get_player_mob_forces)
-            .add_system(player_mob_interaction)
-            .add_system(simulation)
-            .add_system(projectile_update);
+        }).add_system_set(
+            ConditionSet::new()
+                .run_in_state(GameState::InGame)
+                .with_system(get_inter_mob_forces)
+                .with_system(get_player_mob_forces)
+                .with_system(player_mob_interaction)
+                .with_system(simulation)
+                .with_system(projectile_update)
+                .into()
+        );
     }
 }
 

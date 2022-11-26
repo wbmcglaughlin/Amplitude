@@ -10,6 +10,7 @@ noise = "0.8.2"
 bevy-debug-text-overlay = "4.0.1"
 bevy-inspector-egui = "0.14"
 bevy_mod_raycast = "0.7.0"
+iyes_loopless = "0.9.1"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
