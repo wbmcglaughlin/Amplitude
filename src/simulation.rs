@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
-use iyes_loopless::prelude::ConditionSet;
+use iyes_loopless::prelude::{ConditionSet, NextState};
 use rand::{Rng, thread_rng};
 use crate::GameState;
 use crate::mob::{ATTACKED_COLOR, ATTACKED_FLASH_TIME, get_mob_type, Mob};
@@ -75,6 +75,7 @@ pub fn simulation(
 }
 
 fn player_mob_interaction(
+    mut commands: Commands,
     mut mobs: Query<(Entity, &mut Transform, &mut Mob), With<Mob>>,
     mut players: Query<(Entity, &mut Transform, &mut Player), (Without<Mob>, With<Player>)>,
     time: Res<Time>
@@ -85,6 +86,10 @@ fn player_mob_interaction(
 
             if distance < 2.0_f32.powf(2.0) {
                 player.health -= mob.strength * time.delta_seconds();
+
+                if player.health < 0. {
+                    commands.insert_resource(NextState(GameState::GameOver));
+                }
             }
         }
     }
@@ -163,7 +168,6 @@ fn projectile_update(
         if projectile.lifetime.finished() {
             despawns.insert(entity);
         }
-
 
         let mut proj_accel = Vec3::default();
         for (_, transform1, mut mob1) in mobs.iter_mut() {

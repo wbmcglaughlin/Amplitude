@@ -15,9 +15,11 @@ impl Plugin for UIPlugin {
         app   // menu setup (state enter) systems
             .add_enter_system(GameState::MainMenu, setup_menu)
             .add_enter_system(GameState::InGame, game_ui)
+            .add_enter_system(GameState::GameOver, game_over_ui)
             // menu cleanup (state exit) systems
             .add_exit_system(GameState::MainMenu, despawn_with::<MainMenu>)
             .add_exit_system(GameState::InGame, despawn_with::<GameUI>)
+            .add_exit_system(GameState::GameOver, despawn_with::<GameOverText>)
             // menu stuff
             .add_system_set(
                 ConditionSet::new()
@@ -58,6 +60,10 @@ struct ExitButt;
 /// Marker for the "Enter Game" button
 #[derive(Component)]
 struct EnterButt;
+
+/// Game Over UI
+#[derive(Component)]
+struct GameOverText;
 
 fn setup_menu(
     mut commands: Commands,
@@ -152,6 +158,36 @@ fn game_ui(
         ]),
         UIText,
         GameUI
+    ));
+}
+
+fn game_over_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>
+) {
+    commands.spawn((
+        // Create a TextBundle that has a Text with a single section.
+        TextBundle::from_section(
+            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+            "GameOver!",
+            TextStyle {
+                font: asset_server.load("fonts/framdit.ttf"),
+                font_size: 100.0,
+                color: Color::WHITE,
+            },
+        ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::TOP_CENTER)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(5.0),
+                    right: Val::Px(15.0),
+                    ..default()
+                },
+                ..default()
+            }),
+        GameOverText,
     ));
 }
 
