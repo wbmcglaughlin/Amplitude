@@ -183,7 +183,7 @@ fn back_to_menu_on_esc(mut commands: Commands, kbd: Res<Input<KeyCode>>) {
 }
 
 /// Despawn all entities with a given component type
-fn despawn_with<T: Component>(mut commands: Commands, q: Query<Entity, With<T>>) {
+pub fn despawn_with<T: Component>(mut commands: Commands, q: Query<Entity, With<T>>) {
     for e in q.iter() {
         commands.entity(e).despawn_recursive();
     }

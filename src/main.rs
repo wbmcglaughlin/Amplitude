@@ -21,6 +21,7 @@ use crate::ui::UIPlugin;
 enum GameState {
     MainMenu,
     InGame,
+    GameOver,
 }
 
 fn main() {

@@ -1,11 +1,13 @@
-use std::mem::take;
 use std::time::Duration;
 use bevy::{
     prelude::*,
 };
 use bevy::time::Stopwatch;
 use bevy_mod_raycast::RaycastSource;
+use iyes_loopless::prelude::*;
+use crate::GameState;
 use crate::surface::{CAMERA_DISTANCE, GameCamera, Surface};
+use crate::ui::despawn_with;
 
 pub const GRAVITY: f32 = -1.;
 pub const SPEED: f32 = 0.3;
@@ -22,10 +24,16 @@ pub const PROJECTILE_LIFETIME: f32 = 10.0;
 pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(spawn_player)
-            .add_system(player_control)
-            .add_system(handle_mouse_clicks)
-            .add_system(projectile_spawner);
+        app.add_enter_system(GameState::InGame, spawn_player)
+            .add_exit_system(GameState::MainMenu, despawn_with::<Player>)
+            .add_system_set(
+            ConditionSet::new()
+                .run_in_state(GameState::InGame)
+                .with_system(player_control)
+                .with_system(handle_mouse_clicks)
+                .with_system(projectile_spawner)
+                .into()
+            );
     }
 }
 
