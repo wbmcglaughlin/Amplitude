@@ -18,7 +18,8 @@ pub const JUMP_TIMER: f32 = 0.2;
 pub const PLAYER_COLOUR: Color = Color::rgb(0.9, 0.9, 0.9);
 pub const TARGET_COLOUR: Color = Color::rgba(0.9, 0.9, 0.9, 0.3);
 
-
+pub const PROJECTILE_SPAWN_RATE: f32 = 0.3;
+pub const PROJECTILE_SPEED: f32 = 5.0;
 pub const PROJECTILE_LIFETIME: f32 = 10.0;
 
 pub struct PlayerPlugin;
@@ -88,7 +89,7 @@ impl Projectile {
         // Get current direction and slow down
         let cd = 0.04;
 
-        self.vel += self.acc * dt;
+        self.vel += self.acc * dt * PROJECTILE_SPEED;
         self.vel -= cd * self.vel * self.vel.length() * dt;
 
         self.pos += self.vel * dt;
@@ -122,7 +123,7 @@ pub fn spawn_player(
         target_position: Vec3::new(0.0, 0.5, 0.0),
         ..default()
     }).insert(ProjectileTimer {
-        timer: Timer::new(Duration::from_secs(2), TimerMode::Repeating)
+        timer: Timer::new(Duration::from_secs_f32(PROJECTILE_SPAWN_RATE), TimerMode::Repeating)
     });
 
     commands.spawn(PbrBundle {

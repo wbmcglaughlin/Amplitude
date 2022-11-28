@@ -25,16 +25,16 @@ pub struct Mob {
 
 impl Mob {
     pub fn update(&mut self, dt: f32) {
+        // Apply force to mob
         self.acc = self.mass * self.force;
-
         self.vel += self.acc * dt;
-
         self.vel -= DRAG_CONSTANT * self.vel * self.vel.length();
-
         self.pos += self.vel * dt;
 
+        // Reset force
         self.force = Vec3::default();
 
+        // Tick last damaged timer
         self.last_damaged.tick(Duration::from_secs_f32(dt));
     }
 
@@ -42,8 +42,10 @@ impl Mob {
         &mut self,
         damage: f32,
     ) {
+        // Damage the mob
         self.health -= damage;
 
+        // Reset last damaged timer
         self.last_damaged.reset();
     }
 }

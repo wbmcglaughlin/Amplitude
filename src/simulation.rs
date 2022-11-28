@@ -103,10 +103,11 @@ fn get_inter_mob_forces(
     // Time step for current frame
     for (entity1, transform1, mob1) in mobs.iter() {
         let mut force = Vec3::default();
+        let mut repel = Vec3::default();
 
         for (entity2, transform2, mob2) in mobs.iter() {
             if entity2 != entity1 {
-                let distance = transform2.translation - transform1.translation;
+                let mut distance = transform2.translation - transform1.translation;
                 let distance_squared = distance.length_squared();
 
                 if distance_squared < MAX_ATTRACTION_DISTANCE * MAX_ATTRACTION_DISTANCE {
@@ -115,12 +116,12 @@ fn get_inter_mob_forces(
                 }
 
                 // Repel Force
-                let mut repel = 3.0 / distance;
+                repel = 5.0 / distance;
                 repel.y = 0.;
-
-                force -= repel;
             }
         }
+
+        force -= repel;
 
         forces.push(force);
     }
